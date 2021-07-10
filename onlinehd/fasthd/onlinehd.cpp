@@ -25,9 +25,12 @@ torch::Tensor onepass(torch::Tensor x, torch::Tensor y, torch::Tensor m, float l
 	for (int i = 0; i < n; i++) {
 		auto spl = x[i];
 		auto lbl = y[i];
+		/* 유사도가 가장 클 때 cos(spl, m, scores)는 1.0값을 가짐 */
 		scores = 1.0 - cos(spl, m, scores);
 		auto prd = scores.argmin();
+		/* 따라서, 유사도가 적을수록 많이 학습되도록 가중치 scores를 부여함 */
 		m[lbl].add_(spl, (lr*scores[lbl]).item());
+		/* 예측이 틀리면 -로 업데이트 */
 		m[prd].add_(spl, (-lr*scores[prd]).item());
 	}
 	return m;
