@@ -1,0 +1,50 @@
+       Goal: Predict which letter-name was spoken--a simple
+       classification task.  95.9% correct classification using
+       the OPT backpropagation implementation.  Training on
+       isolet1+2+3+4, testing on isolet5.  Network architecture: 56
+       hidden units, 26 output units (one-per-class).
+
+       Goal: same as above. 95.83% correct using OPT
+       backpropagation.  (Architecture: 78 hidden units, 26 output
+       units, one-per-class).
+       96.73% correct using a 30-bit error-correcting output code with
+       OPT (Architecture: 156 hidden units, 30 output units).
+
+
+5. Number of Instances
+     isolet1+2+3+4.data.Z:  6238
+     isolet5.data.Z:        1559
+
+6. Number of Attributes       617 plus 1 for the class
+     All attributes are continuous, real-valued attributes scaled into the
+     range -1.0 to 1.0.  
+
+9. Class Distribution:
+     Class       isolet1+2+3+4:    isolet5:
+       1  A         240               60
+       2  B         240               60
+       3  C         240               60
+       4  D         240               60
+       5  E         240               60
+       6  F         238               60
+       7  G         240               60
+       8  H         240               60
+       9  I         240               60
+      10  J         240               60
+      11  K         240               60
+      12  L         240               60
+      13  M         240               59
+      14  N         240               60
+      15  O         240               60
+      16  P         240               60
+      17  Q         240               60
+      18  R         240               60
+      19  S         240               60
+      20  T         240               60
+      21  U         240               60
+      22  V         240               60
+      23  W         240               60
+      24  X         240               60
+      25  Y         240               60
+      26  Z         240               60
+
