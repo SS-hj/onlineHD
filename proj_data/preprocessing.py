@@ -19,5 +19,5 @@ test_data.rename(columns={'f618':'y'},inplace=True)
 test_data.head()
 print(test_data['y'].nunique()) #26
 
-original_data.to_csv("C:/onlinehd/proj_data/train_set.csv")
-test_data.to_csv("C:/onlinehd/proj_data/test_set.csv")
+original_data.to_csv("C:/onlinehd/proj_data/train_set.csv",index=None)
+test_data.to_csv("C:/onlinehd/proj_data/test_set.csv",index=None)
