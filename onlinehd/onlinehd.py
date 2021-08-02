@@ -7,6 +7,7 @@ from . import spatial
 from . import Encoder
 
 from . import _fasthd
+import numpy as np
 
 class OnlineHD(object):
     '''
@@ -130,6 +131,10 @@ class OnlineHD(object):
 
         return self.encoder(x)
 
+    def decode(self, h: torch.Tensor):
+        
+        return self.encoder.decode(h)
+
     def fit(self,
             x : torch.Tensor,
             y : torch.Tensor,
@@ -179,10 +184,39 @@ class OnlineHD(object):
         '''
 
         h = x if encoded else self.encode(x)
+        # h = torch.tensor(h, requires_grad=True)
         if one_pass_fit:
             self._one_pass_fit(h, y, lr, bootstrap)
         self._iterative_fit(h, y, lr, epochs, batch_size)
         return self
+
+    def backprop(self,
+            x : torch.Tensor,
+            encoded : bool = False,
+            decoded : bool = False,
+            e = 0.3):
+        h = x if encoded else self.encode(x)
+        h = h.clone().detach().requires_grad_(True)
+        scores = spatial.cos_cdist(h, self.model)
+
+        # make attack (add noise)
+        score = scores.detach().numpy()
+        highest_prob = np.max(score)
+        score = np.where(score == highest_prob, 0, score)
+        second_prob = np.max(score)
+
+        noise_prob = highest_prob - second_prob + 0.01
+        noise = np.where(score == np.max(score), noise_prob, 0)
+        noise = torch.from_numpy(noise)
+        scores += noise
+        scores = torch.max(scores)
+
+        # backpropagation
+        scores.backward()
+        h = h + e*h.grad
+        attacked_x = h if decoded else self.decode(h)
+
+        return attacked_x
 
     def to(self, *args):
         '''

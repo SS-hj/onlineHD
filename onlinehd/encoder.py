@@ -58,9 +58,10 @@ class Encoder(object):
 
         # we need batches to remove memory usage
         for i in range(0, n, bsize):
-            torch.matmul(x[i:i+bsize], self.basis.T, out=temp)
-            torch.add(temp, self.base, out=h[i:i+bsize])
-            h[i:i+bsize].cos_().mul_(temp.sin_())
+            temp = torch.matmul(x[i:i+bsize], self.basis.T)
+            h[i:i+bsize] = torch.add(temp, self.base)
+            # h[i:i+bsize].cos_().mul_(temp.sin_())
+            h[i:i+bsize].tanh_()  # for backpropagation
         return h
 
     def to(self, *args):
@@ -80,3 +81,16 @@ class Encoder(object):
         self.basis = self.basis.to(*args)
         self.base = self.base.to(*args)
         return self
+
+    def decode(self, h: torch.Tensor):
+        n = h.size(0)
+        bsize = math.ceil(0.01 * n)
+        t_inv = self.basis.T.pinverse()
+        decoded_x = torch.zeros(n, self.features, device=h.device, dtype=h.dtype)
+        temp = torch.empty(bsize, self.features, device=h.device, dtype=h.dtype)
+
+        for i in range(0, n, bsize):
+            h[i:i+bsize].atanh_()  # inverse hyperbolic tangent
+            temp = torch.sub(h[i:i + bsize], self.base)
+            decoded_x[i:i + bsize] = torch.matmul(temp, t_inv)
+        return decoded_x

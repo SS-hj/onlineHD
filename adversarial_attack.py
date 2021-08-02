@@ -8,6 +8,9 @@ import numpy as np
 
 import onlinehd
 
+import pandas as pd
+
+
 # loads simple mnist dataset
 def load():
     # fetches data
@@ -32,6 +35,7 @@ def load():
     y_test = torch.from_numpy(y_test).long()
     return x, x_test, y, y_test
 
+
 # simple OnlineHD training
 def main():
     print('Loading...')
@@ -55,19 +59,28 @@ def main():
     t = time()
     model = model.fit(x, y, bootstrap=1.0, lr=0.035, epochs=20)
     t = time() - t
+    print(f'{t = :6f}')
 
     print('Validating...')
     yhat = model(x)
-    yhat_test = model(x_test)
     acc = (y == yhat).float().mean()
-    acc_test = (y_test == yhat_test).float().mean()
     print(f'{acc = :6f}')
-    print(f'{acc_test = :6f}')
+
+    print('Attacking...')
+    t = time()
+    attacked_x = model.backprop(x)
+    t = time() - t
     print(f'{t = :6f}')
+
+    print('Attacked Validating...')
+    attacked_yhat = model(attacked_x)
+    acc = (y == attacked_yhat).float().mean()
+    print(f'{acc = :6f}')
+
+
+
 
 # if didn't use import, then '__name__ ==  __main__'
 # ifelse '__name__ !=  __main__'
 if __name__ == '__main__':
     main()
-
-
