@@ -182,7 +182,6 @@ class OnlineHD(object):
         Returns:
             :class:`OnlineHD`: self
         '''
-
         h = x if encoded else self.encode(x)
         # h = torch.tensor(h, requires_grad=True)
         if one_pass_fit:
@@ -192,31 +191,26 @@ class OnlineHD(object):
 
     def backprop(self,
             x : torch.Tensor,
-            encoded : bool = False,
-            decoded : bool = False,
-            e = 0.3):
+            encoded : bool = False):
         h = x if encoded else self.encode(x)
-        h = h.clone().detach().requires_grad_(True)
+
         scores = spatial.cos_cdist(h, self.model)
+        idx = scores.argmax(1).unsqueeze(axis=-1)
+        highest_prob = torch.gather(scores, 1, idx)
+        score = scores.clone()
+        for i in range(len(scores)):
+            score[i][idx[i]] = 0
+        idx = score.argmax(1).unsqueeze(axis=-1)
+        second_prob = torch.gather(scores, 1, idx)
 
-        # make attack (add noise)
-        score = scores.detach().numpy()
-        highest_prob = np.max(score)
-        score = np.where(score == highest_prob, 0, score)
-        second_prob = np.max(score)
+        noise = highest_prob - second_prob + 0.001
 
-        noise_prob = highest_prob - second_prob + 0.01
-        noise = np.where(score == np.max(score), noise_prob, 0)
-        noise = torch.from_numpy(noise)
-        scores += noise
-        scores = torch.max(scores)
+        for i in range(len(noise)):
+            scores[i][idx[i]] += noise[i]
 
-        # backpropagation
-        scores.backward()
-        h = h + e*h.grad
-        attacked_x = h if decoded else self.decode(h)
+        h = spatial.reverse_cos_cdist(scores, self.model)
 
-        return attacked_x
+        return self.decode(h)
 
     def to(self, *args):
         '''

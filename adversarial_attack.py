@@ -10,7 +10,6 @@ import onlinehd
 
 import pandas as pd
 
-
 # loads simple mnist dataset
 def load():
     # fetches data
@@ -23,9 +22,11 @@ def load():
 
     # split and normalize
     x, x_test, y, y_test = sklearn.model_selection.train_test_split(x, y)  # default; train: 0.75 / test data: 0.25
-    scaler = sklearn.preprocessing.Normalizer().fit(x)
-    x = scaler.transform(x)
-    x_test = scaler.transform(x_test)
+    #scaler = sklearn.preprocessing.Normalizer().fit(x)
+    #x = scaler.transform(x)
+    #x_test = scaler.transform(x_test)
+    x = normalizer(x)
+    x_test = normalizer(x_test)
 
     # changes data to pytorch's tensors
     # from_numpy: Created tensor from ndarray. A tensor created with from_numpy shares memory with that ndarray
@@ -35,6 +36,17 @@ def load():
     y_test = torch.from_numpy(y_test).long()
     return x, x_test, y, y_test
 
+def normalizer(x):
+    x = np.array(x)
+    max_value = np.max(x)
+    min_value = np.min(x)
+    return (x-min_value)/(max_value-min_value)
+
+def denormalizer(norm_x):
+    norm_x = np.array(norm_x)
+    max_value = np.max(norm_x)
+    min_value = np.min(norm_x)
+    return norm_x*(max_value-min_value) + min_value
 
 # simple OnlineHD training
 def main():
@@ -76,8 +88,6 @@ def main():
     attacked_yhat = model(attacked_x)
     acc = (y == attacked_yhat).float().mean()
     print(f'{acc = :6f}')
-
-
 
 
 # if didn't use import, then '__name__ ==  __main__'

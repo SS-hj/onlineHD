@@ -32,3 +32,10 @@ def cos_cdist(x1 : torch.Tensor, x2 : torch.Tensor, eps : float = 1e-8):
     cdist = x1 @ x2.T
     cdist.div_(norms1).div_(norms2)
     return cdist
+    
+def reverse_cos_cdist(cdist: torch.Tensor, x2: torch.Tensor, eps : float = 1e-8):
+    eps = torch.tensor(eps, device=cdist.device)
+    norms1 = cdist.norm(dim=1).unsqueeze_(1).max(eps)
+    norms2 = x2.norm(dim=1).unsqueeze_(0).max(eps)
+    cdist.mul_(norms1).mul_(norms2)
+    return cdist @ x2.T.pinverse()

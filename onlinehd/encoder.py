@@ -60,8 +60,7 @@ class Encoder(object):
         for i in range(0, n, bsize):
             temp = torch.matmul(x[i:i+bsize], self.basis.T)
             h[i:i+bsize] = torch.add(temp, self.base)
-            # h[i:i+bsize].cos_().mul_(temp.sin_())
-            h[i:i+bsize].tanh_()  # for backpropagation
+            #h[i:i+bsize].cos_().mul_(temp.sin_())
         return h
 
     def to(self, *args):
@@ -90,7 +89,6 @@ class Encoder(object):
         temp = torch.empty(bsize, self.features, device=h.device, dtype=h.dtype)
 
         for i in range(0, n, bsize):
-            h[i:i+bsize].atanh_()  # inverse hyperbolic tangent
             temp = torch.sub(h[i:i + bsize], self.base)
             decoded_x[i:i + bsize] = torch.matmul(temp, t_inv)
         return decoded_x
